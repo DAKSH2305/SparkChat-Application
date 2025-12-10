@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="messages"></div>
+
+    <div id="input-area">
+        <input id="msgInput" type="text" placeholder="Type a message...">
+        <button id="emoji-btn">😊</button>
+        <button id="sendBtn" type="button">
+            <img src="sendButton.jpeg" alt="send" height="40px" width="40px">
+        </button>
+
+        <emoji-picker id="picker" style="display:none; position:absolute;"></emoji-picker>
+    </div>
+</div>
+
+<!-- LOAD emoji-picker library -->
+<script type="module">
+  import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.min.js';
+</script>
+
+<!-- LOAD CLIENT SCRIPT (NOT A MODULE!!) -->
+<script src="script.js"></script>
+
+</body>
+</html>
