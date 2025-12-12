@@ -94,7 +94,7 @@ socket.onmessage = (e) => {
         div.textContent = `${data.from}: ${data.text}`;
     }
 
-    messages.appendChild(pol);
+    messages.appendChild(div);
 };
 
 
