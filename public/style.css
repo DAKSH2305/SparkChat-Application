@@ -142,12 +142,12 @@ emoji-picker {
 
 /* Your own message bubble */
 .msg.me {
-    background-color: #25d366;
+    background-color: #63b07f;
     color: black;
     align-self: flex-end;
 }
 .me {
-    background: #d1ffd1;
+    background: #c0efc0;
     padding: 8px;
     margin: 5px;
     text-align: right;
@@ -155,9 +155,10 @@ emoji-picker {
 }
 
 .other {
-    background: #e6e6ff;
+    background: #6f6f79;
     padding: 8px;
     margin: 5px;
     text-align: left;
+    color: black;
     border-radius: 6px;
 }
