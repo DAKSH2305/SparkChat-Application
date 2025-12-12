@@ -65,7 +65,7 @@ const server = http.createServer((req, res) => {
     });
 });
 
-const wss = new WebSocketServer({ server });
+import WebSocket, { WebSocketServer } from "ws";
 
 let idCounter = 1;
 
@@ -73,7 +73,7 @@ wss.on("connection", (socket) => {
     socket.id = "USER" + idCounter++;
     console.log(socket.id, "connected");
 
-    // Send user's own ID immediately
+    // Send user's ID
     socket.send(JSON.stringify({
         from: "SERVER",
         text: "YOUR_ID",
@@ -81,13 +81,16 @@ wss.on("connection", (socket) => {
     }));
 
     socket.on("message", (msg) => {
-        // Broadcast message to all clients
+        const data = {
+            from: socket.id,
+            text: msg.toString(),
+            time: new Date().toLocaleTimeString()
+        };
+
+        // Broadcast to all connected clients
         wss.clients.forEach(client => {
-            if (client.readyState === 1) {
-                client.send(JSON.stringify({
-                    from: socket.id,
-                    text: msg.toString()
-                }));
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(data));
             }
         });
     });
@@ -100,3 +103,5 @@ wss.on("connection", (socket) => {
 server.listen(3000, () => {
     console.log("Server running: http://localhost:3000");
 });
+
+
