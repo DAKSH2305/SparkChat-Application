@@ -4,6 +4,40 @@ const msgBox = document.getElementById("messages");
 const msgInput = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 
+//emoji picker
+const picker = document.getElementById("picker");
+const emojiBtn = document.getElementById("emoji-btn");
+
+// Open / Close toggle
+let isPickerOpen = false;
+
+emojiBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // prevent immediate close
+    isPickerOpen = !isPickerOpen;
+    picker.style.display = isPickerOpen ? "block" : "none";
+});
+
+// Add emoji to input
+picker.addEventListener("emoji-click", (event) => {
+    msgInput.value += event.detail.unicode;
+});
+
+// Click outside closes the picker
+document.addEventListener("click", () => {
+    if (isPickerOpen) {
+        isPickerOpen = false;
+        picker.style.display = "none";
+    }
+});
+
+// Prevent picker click from closing itself
+picker.addEventListener("click", (e) => {
+    e.stopPropagation();
+});
+
+
+
+
 let myId = null;
 
 /* ---------------------------
