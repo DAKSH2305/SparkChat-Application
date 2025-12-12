@@ -45,12 +45,11 @@ server.listen(3000, () => {
     console.log("Server running: http://localhost:3000");
 });
 */
-
-import { WebSocketServer } from "ws";
 import http from "http";
 import fs from "fs";
+import WebSocket, { WebSocketServer } from "ws";
 
-// Serve static files from /public
+// HTTP server (serves frontend)
 const server = http.createServer((req, res) => {
     let filePath = "./public" + (req.url === "/" ? "/index.html" : req.url);
 
@@ -65,7 +64,8 @@ const server = http.createServer((req, res) => {
     });
 });
 
-import WebSocket, { WebSocketServer } from "ws";
+// WebSocket server
+const wss = new WebSocketServer({ server });
 
 let idCounter = 1;
 
@@ -73,7 +73,7 @@ wss.on("connection", (socket) => {
     socket.id = "USER" + idCounter++;
     console.log(socket.id, "connected");
 
-    // Send user's ID
+    // Send ID to user
     socket.send(JSON.stringify({
         from: "SERVER",
         text: "YOUR_ID",
@@ -87,7 +87,7 @@ wss.on("connection", (socket) => {
             time: new Date().toLocaleTimeString()
         };
 
-        // Broadcast to all connected clients
+        // Broadcast
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(data));
@@ -103,5 +103,3 @@ wss.on("connection", (socket) => {
 server.listen(3000, () => {
     console.log("Server running: http://localhost:3000");
 });
-
-

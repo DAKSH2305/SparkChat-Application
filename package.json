@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "name": "sparkchat-application",
+  "version": "1.0.0",
+  "description": "currently building a simple open to all webserver chat application --SparkChat",
+  "main": "server.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DAKSH2305/SparkChat-Application.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DAKSH2305/SparkChat-Application/issues"
+  },
+  "homepage": "https://github.com/DAKSH2305/SparkChat-Application#readme"
+}
