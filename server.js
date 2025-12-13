@@ -47,17 +47,30 @@ server.listen(3000, () => {
 */
 import http from "http";
 import fs from "fs";
+import url from "url";
 import WebSocket, { WebSocketServer } from "ws";
 
 // HTTP server (serves frontend)
 const server = http.createServer((req, res) => {
-    let filePath = "./public" + (req.url === "/" ? "/index.html" : req.url);
+    let filePath ;
+    const parsedUrl = url.parse(req.url,true);
+    if(parsedUrl.pathname==="/"){
+        filePath="./public/home.html";
 
+    }
+    else if(parsedUrl.pathname==="/chat"){
+        filePath="./public/INDEX.html";
+
+    }
+    else{
+        filePath="./public"+ parsedUrl.pathname;
+    }
     fs.readFile(filePath, (err, data) => {
         if (err) {
             res.writeHead(404);
             res.end("File not found");
         } else {
+
             res.writeHead(200);
             res.end(data);
         }
