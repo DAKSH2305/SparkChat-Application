@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SparkChat</title>
+    <link rel="stylesheet" href="/login-page/loginstyle.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-right">
+            <div class="login-form-container">
+                <div class="form-header">
+                    <h2>Create an Account</h2>
+                    <p>Enter a username, email and password to get started</p>
+                </div>
+
+                <form class="login-form" id="signupForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Choose a display name" required>
+                        <span class="input-icon"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        <span class="input-icon"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Create a password" required>
+                        <span class="input-icon"></span>
+                    </div>
+
+                    <button type="submit" class="login-btn" id="signupBtn">
+                        <span class="btn-text">Sign Up</span>
+                    </button>
+
+                    <div class="signup-link">
++
+                        Already have an account? <a href="loginForm.html">Sign in here</a>
+                    </div>
++
+                </form>
++
+            </div>
++
+        </div>
++
+    </div>
++
+
++
+    <div id="notificationContainer"></div>
++
++
+    <script src="signup.js"></script>
++</body>
++
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ExamPredict Pro</title>
+    <link rel="stylesheet" href="/login-page/loginstyle.css">
+</head>
+<body>
+    <div class="login-container">
+        <!-- Left Side - Branding -->
+        <div class="login-left">
+            <div class="brand-section">
+                <div class="logo">
+                    <span class="logo-icon" id="logoId"><img src="sparkchatLOGO.png" alt="logo" style="width: auto; height: 120px;  display:flex;" ></span>
+                    <h1>SparkChat 💬</h1>
+                </div>
+                <h2>Master Your Exams Smarter</h2>
+                <p>Predict exam questions, compete with classmates, and study more effectively with our intelligent prediction platform.</p>
+                
+                <div class="features-list">
+                    <div class="feature">
+                        <span class="feature-icon">🎯</span>
+                        <span>Smart Question Predictions</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">📊</span>
+                        <span>Real-time Probability Data</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🏆</span>
+                        <span>Competitive Leaderboards</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">👥</span>
+                        <span>Collaborative Learning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Login Form -->
+        <div class="login-right">
+            <div class="login-form-container">
+                <div class="form-header">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to your account to continue predicting</p>
+                </div>
+
+                <form class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="Enter your email"
+                            required
+                        >
+                        <span class="input-icon">📧</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Enter your password"
+                            required
+                        >
+                        <span class="input-icon">🔒</span>
+                        <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#forgot-password" class="forgot-password">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="login-btn" id="loginBtn">
+                        <span class="btn-text">Sign In</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+
+                    <div class="divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <div class="social-login">
+                        <button type="button" class="social-btn google-btn">
+                            <span class="social-icon">🔍</span>
+                            Google
+                        </button>
+                        <button type="button" class="social-btn microsoft-btn">
+                            <span class="social-icon">🔗</span>
+                            Microsoft
+                        </button>
+                    </div>
+
+                    <div class="signup-link">
+                        Don't have an account? <a href="/signup">Sign up here</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Demo Accounts -->
+            <div class="demo-accounts">
+                <h4>Demo Accounts (Click to try):</h4>
+                <div class="demo-buttons">
+                    <button class="demo-btn" data-email="student@university.edu" data-password="demo123">
+                        Student Account
+                    </button>
+                    <button class="demo-btn" data-email="professor@university.edu" data-password="demo123">
+                        Professor Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <script src="login.js"></script>
+</body>
+</html>
