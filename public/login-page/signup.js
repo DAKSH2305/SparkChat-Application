@@ -2,7 +2,7 @@
 const signupForm = document.getElementById('signupForm');
 const notificationContainer = document.getElementById('notificationContainer');
 
-signupForm.addEventListener('submit', function(e) {
+signupForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
     const username = document.getElementById('username').value.trim();
@@ -13,24 +13,80 @@ signupForm.addEventListener('submit', function(e) {
         showNotification('Please fill all fields', 'error');
         return;
     }
-
-    // Basic email check
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showNotification('Please enter a valid email', 'error');
         return;
     }
+    try {
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        await user.sendEmailVerification();
+
+        await firebase.firestore().collection('users').doc(user.uid).set({
+            uid: user.uid,
+            username: username,
+            email: email,
+            emailVerified: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+            profileComplete: false,
+            role: 'user' // Default role
+        });
+
+        await firebase.firestore().collection('preferences').doc(user.uid).set({
+            theme: 'light',
+            notifications: true,
+            language: 'en'
+        });
+        showNotification('Account created! Redirecting to home...', 'success');
+
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+            window.location.href = 'loginpage.html';
+        }, 3000);
+
+    }
+    catch (error) {
+        console.error('Signup error:', error);
+
+        let errorText = 'Signup failed. ';
+
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                errorText += 'Email already registered.';
+                break;
+            case 'auth/invalid-email':
+                errorText += 'Invalid email address.';
+                break;
+            case 'auth/weak-password':
+                errorText += 'Password is too weak.';
+                break;
+            case 'auth/network-request-failed':
+                errorText += 'Network error. Please check your connection.';
+                break;
+            default:
+                errorText += 'Please try again.';
+        }
+
+        if (errorMessage) {
+            errorMessage.textContent = errorText;
+            errorMessage.style.color = 'red';
+        }
+    }
+
+
+
+
+
+    
 
     // Store demo account info in localStorage
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userName', username);
-    localStorage.setItem('userEmail', email);
-    localStorage.setItem('userPoints', '1000'); // default starting points
+    
 
-    showNotification('Account created! Redirecting to home...', 'success');
+    
 
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 1200);
+ 
 });
 
 function showNotification(message, type = 'info') {
