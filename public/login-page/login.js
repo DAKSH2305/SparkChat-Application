@@ -10,20 +10,6 @@ const btnLoader = document.querySelector('.btn-loader');
 const demoButtons = document.querySelectorAll('.demo-btn');
 const notificationContainer = document.getElementById('notificationContainer');
 
-// Demo accounts data
-const demoAccounts = {
-    student: {
-        email: 'student@university.edu',
-        password: 'demo123',
-        type: 'student'
-    },
-    professor: {
-        email: 'professor@university.edu',
-        password: 'demo123',
-        type: 'professor'
-    }
-};
-
 // Toggle password visibility
 togglePassword.addEventListener('click', function() {
     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -40,11 +26,11 @@ demoButtons.forEach(button => {
         emailInput.value = email;
         passwordInput.value = password;
         
-        showNotification(`Demo ${email.includes('student') ? 'Student' : 'Professor'} account loaded!`, 'info');
+        showNotification(`Demo account loaded!`, 'info');
     });
 });
 
-// Form submission
+// FIREBASE LOGIN - Form submission
 loginForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -67,54 +53,64 @@ loginForm.addEventListener('submit', async function(e) {
     setLoadingState(true);
     
     try {
-        // Simulate API call
-        await simulateLogin(email, password, remember);
+        // FIREBASE AUTHENTICATION
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
         
-        // Success
-        showNotification('Login successful! Redirecting...', 'success');
+        // Update last login in Firestore
+        await firebase.firestore().collection('users').doc(user.uid).update({
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        });
         
-        // Store login state
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', email);
+        // Get user data from Firestore
+        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+        const userData = userDoc.data();
+        
+        // Store in localStorage (optional)
         if (remember) {
             localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('userEmail', email);
         }
         
-        // Redirect to main page after delay
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userName', userData.username || email.split('@')[0]);
+        
+        // Success notification
+        showNotification('Login successful! Redirecting...', 'success');
+        
+        // Redirect to home page
         setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 2000);
+            window.location.href = 'home.html'; // or INDEX.html
+        }, 1500);
         
     } catch (error) {
-        showNotification(error.message, 'error');
+        console.error('Login error:', error);
+        
+        let errorMessage = 'Login failed. ';
+        switch (error.code) {
+            case 'auth/invalid-email':
+                errorMessage = 'Invalid email address.';
+                break;
+            case 'auth/user-disabled':
+                errorMessage = 'This account has been disabled.';
+                break;
+            case 'auth/user-not-found':
+                errorMessage = 'No account found with this email.';
+                break;
+            case 'auth/wrong-password':
+                errorMessage = 'Incorrect password.';
+                break;
+            case 'auth/too-many-requests':
+                errorMessage = 'Too many attempts. Try again later.';
+                break;
+            default:
+                errorMessage = error.message;
+        }
+        
+        showNotification(errorMessage, 'error');
         setLoadingState(false);
     }
 });
-
-// Simulate login API call
-function simulateLogin(email, password, remember) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            // Check against demo accounts
-            const isStudentDemo = email === demoAccounts.student.email && password === demoAccounts.student.password;
-            const isProfessorDemo = email === demoAccounts.professor.email && password === demoAccounts.professor.password;
-            
-            if (isStudentDemo || isProfessorDemo) {
-                // Store user type for demo purposes
-                localStorage.setItem('userType', isStudentDemo ? 'student' : 'professor');
-                localStorage.setItem('userName', isStudentDemo ? 'Demo Student' : 'Demo Professor');
-                resolve({ success: true, userType: isStudentDemo ? 'student' : 'professor' });
-            } else if (email && password) {
-                // For any other non-demo credentials, still allow login (demo behavior)
-                localStorage.setItem('userType', 'student');
-                localStorage.setItem('userName', email.split('@')[0]);
-                resolve({ success: true, userType: 'student' });
-            } else {
-                reject(new Error('Invalid email or password'));
-            }
-        }, 1500); // Simulate network delay
-    });
-}
 
 // Email validation
 function isValidEmail(email) {
@@ -142,79 +138,48 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 2rem;
+        background: ${type === 'success' ? 'green' : type === 'error' ? 'crimson' : '#333'};
+        color: white;
+        border-radius: 5px;
+        z-index: 1000;
+        animation: slideIn 0.2s ease;
+    `;
     
-    notificationContainer.appendChild(notification);
+    document.body.appendChild(notification);
     
-    // Remove notification after 5 seconds
+    // Remove notification after 3 seconds
     setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 5000);
+        notification.remove();
+    }, 3000);
 }
 
-// Add slideOut animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Check if user is already logged in
-function checkLoginStatus() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const remember = localStorage.getItem('rememberMe');
-    
-    if (isLoggedIn === 'true' && remember === 'true') {
-        const savedEmail = localStorage.getItem('userEmail');
-        if (savedEmail) {
-            emailInput.value = savedEmail;
-            rememberMe.checked = true;
-        }
-    }
-}
-
-// Social login handlers
-document.querySelector('.google-btn').addEventListener('click', function() {
+// Social login handlers (optional - can be implemented later)
+document.querySelector('.google-btn')?.addEventListener('click', function() {
     showNotification('Google login coming soon!', 'info');
 });
 
-document.querySelector('.microsoft-btn').addEventListener('click', function() {
+document.querySelector('.microsoft-btn')?.addEventListener('click', function() {
     showNotification('Microsoft login coming soon!', 'info');
 });
 
 // Forgot password handler
-document.querySelector('.forgot-password').addEventListener('click', function(e) {
+document.querySelector('.forgot-password')?.addEventListener('click', function(e) {
     e.preventDefault();
     showNotification('Password reset feature coming soon!', 'info');
 });
 
-// Initialize login page
-checkLoginStatus();
-
-// Add some interactive effects
-emailInput.addEventListener('focus', function() {
-    this.parentElement.classList.add('focused');
-});
-
-emailInput.addEventListener('blur', function() {
-    this.parentElement.classList.remove('focused');
-});
-
-passwordInput.addEventListener('focus', function() {
-    this.parentElement.classList.add('focused');
-});
-
-passwordInput.addEventListener('blur', function() {
-    this.parentElement.classList.remove('focused');
+// Check if user is already logged in with Firebase
+firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+        // User is signed in, maybe auto-redirect
+        console.log('User already logged in:', user.email);
+    } else {
+        // No user is signed in
+        console.log('No user logged in');
+    }
 });

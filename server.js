@@ -101,32 +101,64 @@ let idCounter = 1;
 
 wss.on("connection", (socket) => {
     socket.id = "USER" + idCounter++;
+    socket.username = "Guest"; // Default username
     console.log(socket.id, "connected");
 
-    // Send ID to user
+    // Send socket ID to user
     socket.send(JSON.stringify({
-        from: "SERVER",
-        text: "YOUR_ID",
+        type: "YOUR_ID",
         id: socket.id
     }));
 
     socket.on("message", (msg) => {
-        const data = {
-            from: socket.id,
-            text: msg.toString(),
-            time: new Date().toLocaleTimeString()
-        };
-
-        // Broadcast
-        wss.clients.forEach(client => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(data));
+        try {
+            const parsedMsg = JSON.parse(msg.toString());
+            
+            // Handle username setting
+            if (parsedMsg.type === 'SET_USERNAME') {
+                socket.username = parsedMsg.username || "Guest";
+                console.log(`${socket.id} set username to: ${socket.username}`);
+                return;
             }
-        });
+            
+            // Handle chat message
+            if (parsedMsg.type === 'CHAT_MESSAGE') {
+                const data = {
+                    type: 'CHAT_MESSAGE',
+                    socketId: socket.id,
+                    username: socket.username,
+                    text: parsedMsg.text,
+                    time: new Date().toLocaleTimeString()
+                };
+
+                // Broadcast to all clients
+                wss.clients.forEach(client => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify(data));
+                    }
+                });
+            }
+        } catch (error) {
+            // Handle legacy plain text messages
+            console.error('Message parse error:', error);
+            const data = {
+                type: 'CHAT_MESSAGE',
+                socketId: socket.id,
+                username: socket.username,
+                text: msg.toString(),
+                time: new Date().toLocaleTimeString()
+            };
+
+            wss.clients.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(data));
+                }
+            });
+        }
     });
 
     socket.on("close", () => {
-        console.log(socket.id, "disconnected");
+        console.log(`${socket.id} (${socket.username}) disconnected`);
     });
 });
 

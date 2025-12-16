@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SparkChat – Fast, Classy Conversations</title>
   <link rel="stylesheet" href="homestyle.css" />
+  <!-- FIREBASE SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="/firebase-config.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
@@ -26,7 +31,9 @@
       <a href="#features">Features</a>
       <a href="#preview">Preview</a>
       <a href="#contact">Contact</a>
-      <a href="/login" class="nav-login">Login</a>
+      <span id="userDisplay" style="display: none; color: #fff; margin-right: 15px; font-weight: 500;">Welcome, <span id="username"></span>!</span>
+      <a href="/login" class="nav-login" id="loginLink">Login</a>
+      <button id="logoutBtn" style="display: none; background: transparent; border: 1px solid #fff; color: #fff; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Logout</button>
       <a href="/chat" class="nav-cta">Open Chat</a>
     </nav>
   </header>
@@ -103,5 +110,53 @@
   <footer class="footer">
     <span>© 2025 SparkChat. Built with Node.js.</span>
   </footer>
+
+  <script>
+    // Check authentication state and display username
+    firebase.auth().onAuthStateChanged(async (user) => {
+      const userDisplay = document.getElementById('userDisplay');
+      const usernameSpan = document.getElementById('username');
+      const loginLink = document.getElementById('loginLink');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      if (user) {
+        // User is logged in
+        try {
+          // Get username from Firestore
+          const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+          const userData = userDoc.data();
+          const displayName = userData?.username || user.email.split('@')[0];
+
+          // Update UI
+          usernameSpan.textContent = displayName;
+          userDisplay.style.display = 'inline';
+          loginLink.style.display = 'none';
+          logoutBtn.style.display = 'inline-block';
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          usernameSpan.textContent = user.email.split('@')[0];
+          userDisplay.style.display = 'inline';
+          loginLink.style.display = 'none';
+          logoutBtn.style.display = 'inline-block';
+        }
+      } else {
+        // User is not logged in
+        userDisplay.style.display = 'none';
+        loginLink.style.display = 'inline';
+        logoutBtn.style.display = 'none';
+      }
+    });
+
+    // Logout functionality
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+      try {
+        await firebase.auth().signOut();
+        window.location.reload();
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Error logging out. Please try again.');
+      }
+    });
+  </script>
 </body>
 </html>

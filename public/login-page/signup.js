@@ -1,6 +1,9 @@
-// Signup logic: collect username, email, password and store in localStorage (demo behavior)
+// Signup logic: Firebase Authentication + Firestore
 const signupForm = document.getElementById('signupForm');
 const notificationContainer = document.getElementById('notificationContainer');
+const signupBtn = document.getElementById('signupBtn');
+const btnText = signupBtn?.querySelector('.btn-text');
+const btnLoader = signupBtn?.querySelector('.btn-loader');
 
 signupForm.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -9,20 +12,34 @@ signupForm.addEventListener('submit', async function (e) {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
+    // Validation
     if (!username || !email || !password) {
         showNotification('Please fill all fields', 'error');
         return;
     }
-     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showNotification('Please enter a valid email', 'error');
         return;
     }
+
+    if (password.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+    }
+
+    // Show loading state
+    setLoadingState(true);
+
     try {
+        // Create user with Firebase Authentication
         const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
+        // Send email verification
         await user.sendEmailVerification();
 
+        // Store user data in Firestore
         await firebase.firestore().collection('users').doc(user.uid).set({
             uid: user.uid,
             username: username,
@@ -31,64 +48,68 @@ signupForm.addEventListener('submit', async function (e) {
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
             profileComplete: false,
-            role: 'user' // Default role
+            role: 'user'
         });
 
+        // Store user preferences
         await firebase.firestore().collection('preferences').doc(user.uid).set({
             theme: 'light',
             notifications: true,
             language: 'en'
         });
-        showNotification('Account created! Redirecting to home...', 'success');
 
-        // Redirect to login after 3 seconds
+        showNotification('Account created! Redirecting to login...', 'success');
+
+        // Redirect to login after 2 seconds
         setTimeout(() => {
-            window.location.href = 'loginpage.html';
-        }, 3000);
+            window.location.href = '/login';
+        }, 2000);
 
-    }
-    catch (error) {
+    } catch (error) {
         console.error('Signup error:', error);
+        setLoadingState(false);
 
         let errorText = 'Signup failed. ';
 
         switch (error.code) {
             case 'auth/email-already-in-use':
-                errorText += 'Email already registered.';
+                errorText = 'Email already registered.';
                 break;
             case 'auth/invalid-email':
-                errorText += 'Invalid email address.';
+                errorText = 'Invalid email address.';
                 break;
             case 'auth/weak-password':
-                errorText += 'Password is too weak.';
+                errorText = 'Password is too weak (min 6 characters).';
                 break;
             case 'auth/network-request-failed':
-                errorText += 'Network error. Please check your connection.';
+                errorText = 'Network error. Please check your connection.';
                 break;
             default:
-                errorText += 'Please try again.';
+                errorText = error.message || 'Please try again.';
         }
 
-        if (errorMessage) {
-            errorMessage.textContent = errorText;
-            errorMessage.style.color = 'red';
-        }
+        showNotification(errorText, 'error');
     }
-
-
-
-
-
-    
-
-    // Store demo account info in localStorage
-    
-
-    
-
- 
 });
 
+// Loading state
+function setLoadingState(isLoading) {
+    if (!btnText || !btnLoader || !signupBtn) return;
+    
+    if (isLoading) {
+        btnText.style.display = 'none';
+        btnLoader.style.display = 'block';
+        signupBtn.disabled = true;
+        signupBtn.style.opacity = '0.7';
+    } else {
+        btnText.style.display = 'block';
+        btnLoader.style.display = 'none';
+        signupBtn.disabled = false;
+        signupBtn.style.opacity = '1';
+    }
+}
+
+// Notification system
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
@@ -98,14 +119,47 @@ function showNotification(message, type = 'info') {
         top: 20px;
         right: 20px;
         padding: 1rem 2rem;
-        background: ${type === 'success' ? 'green' : type === 'error' ? 'crimson' : '#333'};
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#333'};
         color: white;
-        border-radius: 5px;
-        z-index: 1000;
-        animation: slideIn 0.2s ease;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        max-width: 300px;
     `;
 
     document.body.appendChild(notification);
 
-    setTimeout(() => notification.remove(), 3000);
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
+
+// Add CSS animation for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
